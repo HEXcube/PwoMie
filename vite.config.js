@@ -8,7 +8,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon.ico', 'favicon-96x96.png', 'apple-touch-icon.png', 'icon-monochrome.svg'],
+      devOptions: {
+        enabled: true
+      },
+      includeAssets: ['**/*.svg', '**/*.png', '**/*.ico'],
       manifest: {
         name: 'PwoMie Pomodoro',
         short_name: 'PwoMie',

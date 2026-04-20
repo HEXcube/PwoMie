@@ -4,7 +4,12 @@ import { X, Heart } from 'lucide-react';
 import { playPop } from '../utils/audio';
 import { BLOB_SHAPES } from '../constants/squishies';
 
-export const AboutModal = ({ isOpen, onClose }) => {
+export interface AboutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (

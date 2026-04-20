@@ -1,6 +1,8 @@
-export const playChime = () => {
+// Gentle chime sound using Web Audio API
+export const playChime = (): void => {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
     
@@ -8,8 +10,8 @@ export const playChime = () => {
     gainNode.connect(ctx.destination);
     
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
-    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5); // Drop to A4
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5);
     
     gainNode.gain.setValueAtTime(0, ctx.currentTime);
     gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
@@ -22,9 +24,10 @@ export const playChime = () => {
   }
 };
 
-export const playPop = () => {
+export const playPop = (): void => {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
     osc.connect(gainNode);
@@ -40,9 +43,10 @@ export const playPop = () => {
   } catch (e) {}
 };
 
-export const playClick = () => {
+export const playClick = (): void => {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
     osc.connect(gainNode);

@@ -9,20 +9,20 @@ import { AboutModal } from './components/AboutModal';
 import { SettingsModal } from './components/SettingsModal';
 
 export default function App() {
-  const [workMinutes, setWorkMinutes] = useState(25);
-  const [breakMinutes, setBreakMinutes] = useState(5);
+  const [workMinutes, setWorkMinutes] = useState<number>(25);
+  const [breakMinutes, setBreakMinutes] = useState<number>(5);
 
-  const [timeLeft, setTimeLeft] = useState(workMinutes * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isWork, setIsWork] = useState(true);
+  const [timeLeft, setTimeLeft] = useState<number>(workMinutes * 60);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isWork, setIsWork] = useState<boolean>(true);
 
   // Settings and Modal State
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isAboutOpen, setIsAboutOpen] = useState<boolean>(false);
 
   // Handle timer countdown and automatic switching
   useEffect(() => {
-    let interval = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
     if (isRunning && timeLeft > 0) {
       interval = setInterval(() => {
@@ -75,7 +75,7 @@ export default function App() {
     }
   };
 
-  const switchMode = (toWork) => {
+  const switchMode = (toWork: boolean) => {
     if (isWork === toWork) return;
     playClick();
     setIsWork(toWork);
@@ -103,7 +103,7 @@ export default function App() {
     setIsAboutOpen(false);
   };
 
-  const saveSettings = (newWork, newBreak) => {
+  const saveSettings = (newWork: number, newBreak: number) => {
     playClick();
     setWorkMinutes(newWork);
     setBreakMinutes(newBreak);
@@ -121,7 +121,7 @@ export default function App() {
     setTimeLeft(isWork ? 25 * 60 : 5 * 60);
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
@@ -183,7 +183,6 @@ export default function App() {
         initialBreak={breakMinutes}
         onSave={saveSettings}
         onResetDefaults={resetDefaults}
-        playClick={playClick}
       />
 
       {/* Background Squishies */}

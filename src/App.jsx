@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Settings, Info } from 'lucide-react';
+import { Play, Pause, RotateCcw, Settings, Info, SkipForward, Save, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Gentle chime sound using Web Audio API
@@ -232,6 +232,17 @@ export default function App() {
     setTimeLeft(isWork ? workMinutes * 60 : breakMinutes * 60);
   };
 
+  const skipSession = () => {
+    playClick();
+    if (isWork) {
+      setIsWork(false);
+      setTimeLeft(breakMinutes * 60);
+    } else {
+      setIsWork(true);
+      setTimeLeft(workMinutes * 60);
+    }
+  };
+
   const switchMode = (toWork) => {
     if (isWork === toWork) return;
     playClick();
@@ -259,6 +270,17 @@ export default function App() {
     setIsSettingsOpen(false);
     setIsRunning(false);
     setTimeLeft(isWork ? tempWork * 60 : tempBreak * 60);
+  };
+
+  const resetSettings = () => {
+    playClick();
+    setTempWork(25);
+    setTempBreak(5);
+    setWorkMinutes(25);
+    setBreakMinutes(5);
+    setIsSettingsOpen(false);
+    setIsRunning(false);
+    setTimeLeft(isWork ? 25 * 60 : 5 * 60);
   };
 
   const formatTime = (seconds) => {
@@ -299,7 +321,7 @@ export default function App() {
       {/* Settings Icon */}
       <button
         onClick={openSettings}
-        className={`absolute top-8 right-8 sm:top-12 sm:right-12 z-20 p-2 rounded-full transition-colors duration-300 ${theme.resetIcon} focus:outline-none focus:ring-2 ${theme.ringColor}`}
+        className={`absolute top-8 right-8 sm:top-12 sm:right-12 z-20 p-2 rounded-full transition-colors duration-300 ${theme.resetIcon} focus:outline-none`}
         aria-label="Settings"
       >
         <Settings size={28} strokeWidth={2} />
@@ -319,9 +341,18 @@ export default function App() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-8 w-full max-w-sm shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white"
+              className="relative bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-8 w-full max-w-sm shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white"
             >
-              <h2 className="text-xl font-bold text-center text-rose-950/80 mb-8 font-sans">Timer Settings</h2>
+              {/* Close Button Top Right */}
+              <button 
+                onClick={closeSettings}
+                className="absolute top-6 right-6 text-rose-900/30 hover:text-rose-900/60 transition-colors focus:outline-none"
+                aria-label="Close settings"
+              >
+                <X size={24} strokeWidth={2.5} />
+              </button>
+
+              <h2 className="text-xl font-bold text-center text-rose-950/80 mb-8 font-sans mt-2">Timer Settings</h2>
 
               {/* Pomodoro Slider */}
               <div className="mb-6">
@@ -329,13 +360,20 @@ export default function App() {
                   <span className="text-sm font-bold text-rose-950/70">Pomodoro Duration</span>
                   <span className="text-lg font-bold text-rose-950/80">{tempWork}m</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="1" max="60" 
-                  value={tempWork} 
-                  onChange={(e) => setTempWork(Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer bg-rose-100 accent-rose-900/60"
-                />
+                <div className="relative w-full pb-2">
+                  <input 
+                    type="range" 
+                    min="1" max="60" 
+                    value={tempWork} 
+                    onChange={(e) => setTempWork(Number(e.target.value))}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer bg-rose-100 accent-rose-900/60 relative z-10"
+                  />
+                  {/* Default Marker for 25m */}
+                  <div className="absolute top-2 transform -translate-x-1/2 pointer-events-none" style={{ left: '40.67%' }}>
+                    <div className="w-[3px] h-2 bg-white rounded-full mt-0.5"></div>
+                    <div className="w-[1px] h-2 bg-rose-300 absolute top-0 left-[1px] rounded-full mt-0.5"></div>
+                  </div>
+                </div>
               </div>
 
               {/* Break Slider */}
@@ -344,13 +382,20 @@ export default function App() {
                   <span className="text-sm font-bold text-sky-950/70">Break Duration</span>
                   <span className="text-lg font-bold text-sky-950/80">{tempBreak}m</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="1" max="30" 
-                  value={tempBreak} 
-                  onChange={(e) => setTempBreak(Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer bg-sky-100 accent-sky-700/60"
-                />
+                <div className="relative w-full pb-2">
+                  <input 
+                    type="range" 
+                    min="1" max="30" 
+                    value={tempBreak} 
+                    onChange={(e) => setTempBreak(Number(e.target.value))}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer bg-sky-100 accent-sky-700/60 relative z-10"
+                  />
+                  {/* Default Marker for 5m */}
+                  <div className="absolute top-2 transform -translate-x-1/2 pointer-events-none" style={{ left: '13.79%' }}>
+                    <div className="w-[3px] h-2 bg-white rounded-full mt-0.5"></div>
+                    <div className="w-[1px] h-2 bg-sky-300 absolute top-0 left-[1px] rounded-full mt-0.5"></div>
+                  </div>
+                </div>
               </div>
 
               {/* Info Box */}
@@ -364,16 +409,26 @@ export default function App() {
               {/* Buttons */}
               <button 
                 onClick={saveSettings}
-                className="w-full py-4 bg-rose-900/70 hover:bg-rose-900/80 text-white rounded-full font-bold text-lg transition-colors shadow-sm mb-3"
+                className="w-full py-3 bg-rose-900/70 hover:bg-rose-900/80 text-white rounded-full font-bold transition-colors shadow-sm mb-2 flex items-center justify-center space-x-2"
               >
-                Save
+                <Save size={20} strokeWidth={2.5} />
+                <span className='mt-1'>Save</span>
               </button>
               
               <button 
-                onClick={closeSettings}
-                className="w-full py-3 text-rose-900/40 hover:text-rose-900/60 font-semibold text-sm transition-colors"
+                onClick={resetSettings}
+                className="w-full py-3 text-rose-900/70 hover:text-rose-900/90 font-bold transition-colors flex items-center justify-center space-x-1.5 mb-2 bg-rose-50 rounded-full"
               >
-                Discard
+                <RotateCcw size={16} strokeWidth={2.5} />
+                <span className='mt-1'>Reset</span>
+              </button>
+
+              <button 
+                onClick={closeSettings}
+                className="w-full py-3 text-rose-900/70 hover:text-rose-900/90 font-bold transition-colors flex items-center justify-center space-x-1.5 bg-rose-50 rounded-full"
+              >
+                <X size={18} strokeWidth={2.5} />
+                <span className='mt-0.5'>Discard</span>
               </button>
             </motion.div>
           </motion.div>
@@ -411,34 +466,50 @@ export default function App() {
           </motion.button>
         </div>
 
-        {/* Reset Button (Moved above timer) */}
-        <button 
-          onClick={resetTimer}
-          className={`mb-4 p-2 rounded-full transition-colors duration-300 ${theme.resetIcon} focus:outline-none`}
-          aria-label="Reset timer"
-        >
-          <RotateCcw size={20} strokeWidth={2.5} />
-        </button>
-
         {/* Timer Display */}
         <div className={`text-[140px] leading-none font-bold tracking-tighter mb-16 transition-colors duration-1000 ${theme.text}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
           {formatTime(timeLeft)}
         </div>
 
-        {/* Play/Pause Button */}
-        <motion.button 
-          onClick={toggleTimer}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className={`w-24 h-24 rounded-full flex items-center justify-center shadow-lg transition-colors duration-300 ${theme.buttonBg} ${theme.buttonText} ${theme.buttonHover} focus:outline-none focus:ring-4 focus:ring-opacity-30 ${theme.ringColor}`}
-          aria-label={isRunning ? "Pause timer" : "Start timer"}
-        >
-          {isRunning ? (
-            <Pause size={40} strokeWidth={2} fill="currentColor" />
-          ) : (
-            <Play size={40} strokeWidth={2} fill="currentColor" className="ml-2" />
-          )}
-        </motion.button>
+        {/* Controls Container */}
+        <div className="flex items-center justify-center space-x-8">
+          {/* Reset Button */}
+          <motion.button 
+            onClick={resetTimer}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className={`p-4 rounded-full transition-colors duration-300 ${theme.resetIcon} focus:outline-none`}
+            aria-label="Reset timer"
+          >
+            <RotateCcw size={28} strokeWidth={2.5} />
+          </motion.button>
+
+          {/* Play/Pause Button */}
+          <motion.button 
+            onClick={toggleTimer}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`w-24 h-24 rounded-full flex items-center justify-center shadow-lg transition-colors duration-300 ${theme.buttonBg} ${theme.buttonText} ${theme.buttonHover} focus:outline-none focus:ring-4 focus:ring-opacity-30 ${theme.ringColor}`}
+            aria-label={isRunning ? "Pause timer" : "Start timer"}
+          >
+            {isRunning ? (
+              <Pause size={40} strokeWidth={2} fill="currentColor" />
+            ) : (
+              <Play size={40} strokeWidth={2} fill="currentColor" className="ml-2" />
+            )}
+          </motion.button>
+
+          {/* Skip Button */}
+          <motion.button 
+            onClick={skipSession}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className={`p-4 rounded-full transition-colors duration-300 ${theme.resetIcon} focus:outline-none`}
+            aria-label="Skip session"
+          >
+            <SkipForward size={28} strokeWidth={2.5} />
+          </motion.button>
+        </div>
 
       </div>
     </div>

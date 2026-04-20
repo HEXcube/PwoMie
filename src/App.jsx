@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Play, Pause, SkipForward, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Play, Pause, RotateCcw, Settings, Info } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 // Gentle chime sound using Web Audio API
 const playChime = () => {
@@ -63,11 +64,25 @@ const playClick = () => {
 };
 
 // Character definitions for our cute companions
+// Names: Sqiggly, Wiggly, Jiggly, and Miggly!
 const CREATURE_TYPES = [
-  { active: '• ω •', breakFace: 'u w u', breakActivity: 'Zzz', wait: '• _ •' },
-  { active: '◕ ▿ ◕', breakFace: '˘ ▽ ˘', breakActivity: '☕', wait: '◕ _ ◕' },
-  { active: '^ ᴗ ^', breakFace: 'ᵕ ᴗ ᵕ', breakActivity: '📖', wait: 'º _ º' },
-  { active: '˶ˆ꒳ˆ˵', breakFace: '˘ ᵕ ˘', breakActivity: '🎵', wait: '˶-.-˵' }
+  { name: 'Sqiggly', eye: '•' }, // Small dot
+  { name: 'Wiggly', eye: '◕' },  // Highlighted circle
+  { name: 'Jiggly', eye: 'o' },  // Hollow circle
+  { name: 'Miggly', eye: '°' }   // Tiny upper circle (slightly different)
+];
+
+// Subtle, water-balloon/mochi shapes for gentle animation
+// Added more variation so characters look distinct
+const BLOB_SHAPES = [
+  // Shape 0: Slightly bottom-heavy
+  "48% 52% 51% 49% / 50% 48% 55% 45%",
+  // Shape 1: Slightly wider
+  "55% 45% 49% 51% / 48% 52% 50% 52%",
+  // Shape 2: Slightly taller
+  "50% 50% 52% 48% / 55% 45% 48% 52%",
+  // Shape 3: Slightly top-heavy
+  "49% 51% 48% 52% / 45% 55% 51% 49%",
 ];
 
 const Creature = ({ isRunning, isWork, index }) => {
@@ -101,60 +116,77 @@ const Creature = ({ isRunning, isWork, index }) => {
          clearTimeout(timeout);
          clearInterval(interval);
       };
-    } else if (!isWork) {
-      // Go to the bottom of the screen to relax during breaks
-      setPos({ x: 20 + index * 20, y: 88 });
     }
-    // If !isRunning && isWork, they just stay exactly where they are (frozen)
+    // Note: Removed the reset to bottom. Now they stay exactly where they are during a break!
   }, [isRunning, isWork, index]);
 
-  // Determine what face and activity to show
-  let face = type.active;
-  let activity = '';
+  // Determine what face to show based on state
+  let eye = type.eye;
+  let mouth = (isWork && isRunning) ? 'ᴗ' : '_';
 
   if (!isWork) {
-    face = type.breakFace;
-    activity = type.breakActivity;
-  } else if (!isRunning) {
-    face = type.wait;
-    activity = '';
+    eye = '-';   // Sleepy eyes for break
+    mouth = '_'; // Straight mouth while sleeping
   }
+  
+  const face = `${eye} ${mouth} ${eye}`;
+
+  // Create a gentle A-to-B animation for each creature
+  const shapeA = BLOB_SHAPES[index % BLOB_SHAPES.length];
+  const shapeB = BLOB_SHAPES[(index + 1) % BLOB_SHAPES.length];
 
   return (
-    <div 
-      className="absolute flex flex-col items-center pointer-events-none transition-all ease-in-out"
-      style={{
+    <motion.div 
+      className="absolute flex flex-col items-center pointer-events-none"
+      animate={{
         left: `${pos.x}vw`,
         top: `${pos.y}vh`,
-        transitionDuration: (!isWork || !isRunning) ? '3s' : `${5000 + index * 1000}ms`,
-        transform: `translate(-50%, -50%)`,
       }}
+      transition={{
+        duration: (!isWork || !isRunning) ? 3 : 5 + index,
+        ease: "easeInOut"
+      }}
+      style={{ transform: `translate(-50%, -50%)` }}
     >
-       <div className={`h-6 text-sm mb-1 transition-opacity duration-500
-         ${!isWork && isRunning ? 'animate-bounce text-sky-400 opacity-100' : 'text-rose-300 opacity-70'}
-         ${isWork && isRunning ? 'opacity-0' : ''} 
+       <div className={`h-6 text-sm mb-1 font-bold tracking-widest transition-opacity duration-500 text-sky-500
+         ${!isWork ? 'opacity-100' : 'opacity-0'}
+         ${!isWork && isRunning ? 'animate-bounce' : ''} 
        `}>
-         {activity || ' '}
+         Zzz
        </div>
-       <div 
+       <motion.div 
          onClick={playPop}
-         className={`w-20 h-20 blob-${index % 4} active:scale-90 active:animate-none flex items-center justify-center backdrop-blur-sm transition-all duration-300 shadow-sm pointer-events-auto cursor-pointer
+         animate={{ borderRadius: [shapeA, shapeB] }}
+         transition={{ 
+           borderRadius: { duration: 4 + index * 0.5, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" },
+           scale: { type: "spring", stiffness: 400, damping: 15 },
+           scaleX: { type: "spring", stiffness: 400, damping: 15 },
+           scaleY: { type: "spring", stiffness: 400, damping: 15 }
+         }}
+         whileHover={{ scale: 1.05 }}
+         // Pressing inward (Z-axis feel) - gets slightly larger and more circular as it squishes against the screen
+         whileTap={{ scale: 1.1, borderRadius: "45% 55% 45% 55% / 55% 45% 55% 45%" }}
+         className={`w-20 h-20 flex items-center justify-center backdrop-blur-sm shadow-sm pointer-events-auto cursor-pointer
          ${isWork ? 'bg-rose-200/40 text-rose-500 hover:bg-rose-300/60' : 'bg-sky-200/40 text-sky-600 hover:bg-sky-300/60'}
        `}>
-         <span className="text-sm font-bold tracking-widest whitespace-nowrap">{face}</span>
-       </div>
-    </div>
+         <span className="text-sm font-bold tracking-widest whitespace-nowrap select-none">{face}</span>
+       </motion.div>
+    </motion.div>
   );
 };
 
 export default function App() {
-  const WORK_TIME = 25 * 60;
-  const BREAK_TIME = 5 * 60;
+  const [workMinutes, setWorkMinutes] = useState(25);
+  const [breakMinutes, setBreakMinutes] = useState(5);
 
-  const [timeLeft, setTimeLeft] = useState(WORK_TIME);
+  const [timeLeft, setTimeLeft] = useState(workMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isWork, setIsWork] = useState(true);
-  const [sessionsCompleted, setSessionsCompleted] = useState(0);
+
+  // Settings State
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [tempWork, setTempWork] = useState(25);
+  const [tempBreak, setTempBreak] = useState(5);
 
   // Handle timer countdown and automatic switching
   useEffect(() => {
@@ -168,17 +200,18 @@ export default function App() {
       playChime();
       
       if (isWork) {
-        setSessionsCompleted(prev => prev + 1);
         setIsWork(false);
-        setTimeLeft(BREAK_TIME);
+        setTimeLeft(breakMinutes * 60);
       } else {
         setIsWork(true);
-        setTimeLeft(WORK_TIME);
+        setTimeLeft(workMinutes * 60);
       }
     }
 
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft, isWork]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning, timeLeft, isWork, workMinutes, breakMinutes]);
 
   // Update document title with remaining time
   useEffect(() => {
@@ -196,19 +229,36 @@ export default function App() {
   const resetTimer = () => {
     playClick();
     setIsRunning(false);
-    setTimeLeft(isWork ? WORK_TIME : BREAK_TIME);
+    setTimeLeft(isWork ? workMinutes * 60 : breakMinutes * 60);
   };
 
-  const skipSession = () => {
+  const switchMode = (toWork) => {
+    if (isWork === toWork) return;
     playClick();
-    if (isWork) {
-      setSessionsCompleted(prev => prev + 1);
-      setIsWork(false);
-      setTimeLeft(BREAK_TIME);
-    } else {
-      setIsWork(true);
-      setTimeLeft(WORK_TIME);
-    }
+    setIsWork(toWork);
+    setIsRunning(false);
+    setTimeLeft(toWork ? workMinutes * 60 : breakMinutes * 60);
+  };
+
+  const openSettings = () => {
+    playClick();
+    setTempWork(workMinutes);
+    setTempBreak(breakMinutes);
+    setIsSettingsOpen(true);
+  };
+
+  const closeSettings = () => {
+    playClick();
+    setIsSettingsOpen(false);
+  };
+
+  const saveSettings = () => {
+    playClick();
+    setWorkMinutes(tempWork);
+    setBreakMinutes(tempBreak);
+    setIsSettingsOpen(false);
+    setIsRunning(false);
+    setTimeLeft(isWork ? tempWork * 60 : tempBreak * 60);
   };
 
   const formatTime = (seconds) => {
@@ -220,24 +270,116 @@ export default function App() {
   const theme = isWork 
     ? {
         bg: 'bg-rose-50',
-        text: 'text-rose-400',
-        buttonHover: 'hover:bg-rose-100',
-        activePill: 'bg-rose-200 text-rose-600',
-        inactivePill: 'text-rose-300',
-        ringColor: 'focus:ring-rose-400'
+        text: 'text-rose-900/70', // Darker, muted text for the timer
+        buttonBg: 'bg-rose-900/60', // Darker button background
+        buttonText: 'text-white',
+        buttonHover: 'hover:bg-rose-900/70',
+        activePill: 'bg-rose-200/80 text-rose-900/80',
+        inactivePill: 'text-rose-900/40 hover:text-rose-900/60 cursor-pointer',
+        pillContainer: 'bg-rose-100/50',
+        ringColor: 'focus:ring-rose-400',
+        resetIcon: 'text-rose-900/40 hover:text-rose-900/60'
       }
     : {
         bg: 'bg-sky-50',
-        text: 'text-sky-400',
-        buttonHover: 'hover:bg-sky-100',
-        activePill: 'bg-sky-200 text-sky-600',
-        inactivePill: 'text-sky-300',
-        ringColor: 'focus:ring-sky-400'
+        text: 'text-sky-900/70',
+        buttonBg: 'bg-sky-900/70',
+        buttonText: 'text-white',
+        buttonHover: 'hover:bg-sky-900/80',
+        activePill: 'bg-sky-200/80 text-sky-900/80',
+        inactivePill: 'text-sky-900/40 hover:text-sky-900/60 cursor-pointer',
+        pillContainer: 'bg-sky-100/50',
+        ringColor: 'focus:ring-sky-400',
+        resetIcon: 'text-sky-900/40 hover:text-sky-900/60'
       };
 
   return (
     <div className={`relative overflow-hidden min-h-screen flex flex-col items-center justify-center transition-colors duration-1000 ease-in-out ${theme.bg}`}>
       
+      {/* Settings Icon */}
+      <button
+        onClick={openSettings}
+        className={`absolute top-8 right-8 sm:top-12 sm:right-12 z-20 p-2 rounded-full transition-colors duration-300 ${theme.resetIcon} focus:outline-none focus:ring-2 ${theme.ringColor}`}
+        aria-label="Settings"
+      >
+        <Settings size={28} strokeWidth={2} />
+      </button>
+
+      {/* Settings Modal */}
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/5 backdrop-blur-md p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-8 w-full max-w-sm shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white"
+            >
+              <h2 className="text-xl font-bold text-center text-rose-950/80 mb-8 font-sans">Timer Settings</h2>
+
+              {/* Pomodoro Slider */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-sm font-bold text-rose-950/70">Pomodoro Duration</span>
+                  <span className="text-lg font-bold text-rose-950/80">{tempWork}m</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="1" max="60" 
+                  value={tempWork} 
+                  onChange={(e) => setTempWork(Number(e.target.value))}
+                  className="w-full h-2 rounded-full appearance-none cursor-pointer bg-rose-100 accent-rose-900/60"
+                />
+              </div>
+
+              {/* Break Slider */}
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-sm font-bold text-sky-950/70">Break Duration</span>
+                  <span className="text-lg font-bold text-sky-950/80">{tempBreak}m</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="1" max="30" 
+                  value={tempBreak} 
+                  onChange={(e) => setTempBreak(Number(e.target.value))}
+                  className="w-full h-2 rounded-full appearance-none cursor-pointer bg-sky-100 accent-sky-700/60"
+                />
+              </div>
+
+              {/* Info Box */}
+              <div className="flex items-start bg-rose-50/70 rounded-2xl p-4 mb-8">
+                <Info size={18} strokeWidth={2.5} className="text-rose-900/40 mt-0.5 mr-3 flex-shrink-0" />
+                <p className="text-xs font-medium text-rose-900/60 leading-relaxed">
+                  Adjusting your intervals helps maintain high cognitive focus throughout the day.
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <button 
+                onClick={saveSettings}
+                className="w-full py-4 bg-rose-900/70 hover:bg-rose-900/80 text-white rounded-full font-bold text-lg transition-colors shadow-sm mb-3"
+              >
+                Save
+              </button>
+              
+              <button 
+                onClick={closeSettings}
+                className="w-full py-3 text-rose-900/40 hover:text-rose-900/60 font-semibold text-sm transition-colors"
+              >
+                Discard
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Background Creatures */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {[0, 1, 2, 3].map(index => (
@@ -250,59 +392,53 @@ export default function App() {
         ))}
       </div>
 
-      {/* Main Card */}
-      <div className="relative z-10 flex flex-col items-center p-8 sm:p-12 rounded-3xl backdrop-blur-sm bg-white/10 shadow-[0_0_40px_rgba(0,0,0,0.02)]">
+      {/* Main Minimal UI */}
+      <div className="relative z-10 flex flex-col items-center w-full max-w-md">
         
-        {/* Mode Indicators */}
-        <div className="flex space-x-4 mb-8 sm:mb-12 font-medium tracking-wide text-sm sm:text-base">
-          <span className={`px-4 py-1.5 blob-btn transition-colors duration-500 ${isWork ? theme.activePill : theme.inactivePill}`}>
-            focus
-          </span>
-          <span className={`px-4 py-1.5 blob-btn transition-colors duration-500 ${!isWork ? theme.activePill : theme.inactivePill}`}>
-            break
-          </span>
+        {/* Mode Indicators (Pill Container) */}
+        <div className={`flex items-center p-1.5 rounded-full mb-12 transition-colors duration-1000 ${theme.pillContainer}`}>
+          <motion.button 
+            onClick={() => switchMode(true)}
+            className={`px-6 py-2 rounded-full text-sm font-bold tracking-wide transition-colors duration-500 ${isWork ? theme.activePill : theme.inactivePill}`}
+          >
+            Focus
+          </motion.button>
+          <motion.button 
+            onClick={() => switchMode(false)}
+            className={`px-6 py-2 rounded-full text-sm font-bold tracking-wide transition-colors duration-500 ${!isWork ? theme.activePill : theme.inactivePill}`}
+          >
+            Break
+          </motion.button>
         </div>
 
+        {/* Reset Button (Moved above timer) */}
+        <button 
+          onClick={resetTimer}
+          className={`mb-4 p-2 rounded-full transition-colors duration-300 ${theme.resetIcon} focus:outline-none`}
+          aria-label="Reset timer"
+        >
+          <RotateCcw size={20} strokeWidth={2.5} />
+        </button>
+
         {/* Timer Display */}
-        <div className={`text-8xl sm:text-9xl font-light tracking-tight mb-12 transition-colors duration-1000 ${theme.text}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+        <div className={`text-[140px] leading-none font-bold tracking-tighter mb-16 transition-colors duration-1000 ${theme.text}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
           {formatTime(timeLeft)}
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center space-x-6 sm:space-x-8">
-          <button 
-            onClick={resetTimer}
-            className={`p-4 blob-btn transition-all duration-300 hover:scale-105 active:scale-95 active:animate-none ${theme.text} ${theme.buttonHover} focus:outline-none focus:ring-2 focus:ring-opacity-50 ${theme.ringColor}`}
-            aria-label="Reset timer"
-          >
-            <RotateCcw size={28} strokeWidth={2} />
-          </button>
-
-          <button 
-            onClick={toggleTimer}
-            className={`p-6 blob-btn transition-all duration-300 transform hover:scale-110 active:scale-95 active:animate-none ${theme.text} ${theme.buttonHover} focus:outline-none focus:ring-2 focus:ring-opacity-50 ${theme.ringColor}`}
-            aria-label={isRunning ? "Pause timer" : "Start timer"}
-          >
-            {isRunning ? (
-              <Pause size={48} strokeWidth={1.5} fill="currentColor" />
-            ) : (
-              <Play size={48} strokeWidth={1.5} fill="currentColor" className="ml-2" />
-            )}
-          </button>
-
-          <button 
-            onClick={skipSession}
-            className={`p-4 blob-btn transition-all duration-300 hover:scale-105 active:scale-95 active:animate-none ${theme.text} ${theme.buttonHover} focus:outline-none focus:ring-2 focus:ring-opacity-50 ${theme.ringColor}`}
-            aria-label="Skip session"
-          >
-            <SkipForward size={28} strokeWidth={2} />
-          </button>
-        </div>
-
-        {/* Session Counter */}
-        <div className={`mt-16 text-sm sm:text-base font-medium transition-colors duration-1000 ${theme.inactivePill}`}>
-          cycles completed: {sessionsCompleted}
-        </div>
+        {/* Play/Pause Button */}
+        <motion.button 
+          onClick={toggleTimer}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className={`w-24 h-24 rounded-full flex items-center justify-center shadow-lg transition-colors duration-300 ${theme.buttonBg} ${theme.buttonText} ${theme.buttonHover} focus:outline-none focus:ring-4 focus:ring-opacity-30 ${theme.ringColor}`}
+          aria-label={isRunning ? "Pause timer" : "Start timer"}
+        >
+          {isRunning ? (
+            <Pause size={40} strokeWidth={2} fill="currentColor" />
+          ) : (
+            <Play size={40} strokeWidth={2} fill="currentColor" className="ml-2" />
+          )}
+        </motion.button>
 
       </div>
     </div>

@@ -1,46 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 :root {
   font-family: 'Comfortaa', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-}
-
-/* Distinct blobs for characters */
-.blob-0 { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; animation: morph1 3.5s ease-in-out infinite alternate; }
-.blob-1 { border-radius: 30% 70% 50% 50% / 50% 40% 60% 50%; animation: morph2 4.2s ease-in-out infinite alternate-reverse; }
-.blob-2 { border-radius: 50% 50% 70% 30% / 30% 70% 50% 50%; animation: morph3 3.8s ease-in-out infinite alternate; }
-.blob-3 { border-radius: 60% 40% 50% 50% / 50% 50% 30% 70%; animation: morph4 4.5s ease-in-out infinite alternate-reverse; }
-
-/* Subtle blob for UI buttons */
-.blob-btn {
-  border-radius: 48% 52% 48% 52% / 52% 48% 52% 48%;
-  animation: morph-subtle 4s ease-in-out infinite alternate;
-}
-
-@keyframes morph1 {
-  0% { border-radius: 40% 60% 70% 30% / 40% 40% 60% 50%; }
-  100% { border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%; }
-}
-@keyframes morph2 {
-  0% { border-radius: 30% 70% 50% 50% / 50% 40% 60% 50%; }
-  100% { border-radius: 60% 40% 40% 60% / 40% 60% 40% 60%; }
-}
-@keyframes morph3 {
-  0% { border-radius: 50% 50% 70% 30% / 30% 70% 50% 50%; }
-  100% { border-radius: 40% 60% 30% 70% / 60% 30% 70% 40%; }
-}
-@keyframes morph4 {
-  0% { border-radius: 60% 40% 50% 50% / 50% 50% 30% 70%; }
-  100% { border-radius: 30% 70% 40% 60% / 60% 40% 50% 50%; }
-}
-@keyframes morph-subtle {
-  0% { border-radius: 48% 52% 48% 52% / 52% 48% 52% 48%; }
-  100% { border-radius: 52% 48% 52% 48% / 48% 52% 48% 52%; }
 }
 
 body {

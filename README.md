@@ -1,7 +1,7 @@
 # PwoMie
 Squish your goals with PwoMie, the cutest Pomodoro timer!
 
-[Open PwoMie!](https://RohanVilloth.github.io/PwoMie)
+[Open PwoMie!](https://RohanVilloth.com/PwoMie)
 
 ## Local Development
 
